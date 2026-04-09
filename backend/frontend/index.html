@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hackathon Challenge Builder</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      min-height: 100vh;
+      padding: 30px;
+      color: #222;
+      transition: 0.3s;
+    }
+
+    body.dark {
+      background: linear-gradient(135deg, #111, #222);
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: auto;
+    }
+
+    .header, .card, .popup, .login-box {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    body.dark .header,
+    body.dark .card,
+    body.dark .popup,
+    body.dark .login-box {
+      background: #2d2d2d;
+      color: white;
+    }
+
+    .header {
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      color: #1e3c72;
+      font-size: 2.5rem;
+    }
+
+    body.dark .header h1,
+    body.dark .card h2,
+    body.dark .challenge h3 {
+      color: #90b4ff;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    .top-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .top-controls input,
+    .top-controls select {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 25px;
+    }
+
+    .card {
+      padding: 25px;
+    }
+
+    .card h2 {
+      margin-bottom: 20px;
+      color: #1e3c72;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .main-btn {
+      width: 100%;
+      background: #1e3c72;
+    }
+
+    .theme-btn {
+      width: 100%;
+      background: #444;
+    }
+
+    #challengeList {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: 700px;
+      overflow-y: auto;
+    }
+
+    .challenge {
+      background: #f4f7ff;
+      border-left: 6px solid #1e3c72;
+      border-radius: 15px;
+      padding: 18px;
+    }
+
+    body.dark .challenge {
+      background: #3b3b3b;
+      color: white;
+    }
+
+    .challenge h3 {
+      color: #1e3c72;
+      margin-bottom: 10px;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      background: #dce8ff;
+      color: #1e3c72;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .edit-btn { background: #f39c12; flex: 1; }
+    .view-btn { background: #16a085; flex: 1; }
+    .delete-btn { background: #c0392b; flex: 1; }
+
+    #loginScreen,
+    #detailsPopup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #detailsPopup {
+      display: none;
+    }
+
+    .login-box,
+    .popup {
+      width: 420px;
+      max-width: 90%;
+      padding: 30px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loginScreen">
+    <div class="login-box">
+      <h2 style="margin-bottom:20px; color:#1e3c72;">Organizer Login</h2>
+      <input type="text" id="loginUser" placeholder="Username">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button class="main-btn" onclick="login()">Login</button>
+      <p style="margin-top:15px; color:#666; font-size:14px;">Username: admin | Password: admin123</p>
+    </div>
+  </div>
+
+  <div id="detailsPopup">
+    <div class="popup">
+      <h2 id="popupTitle"></h2>
+      <div id="popupContent" style="margin-top:15px;"></div>
+      <button class="main-btn" style="margin-top:20px;" onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>Hackathon Challenge Builder</h1>
+      <p>Create and manage hackathon challenges using MySQL.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-box">
+        <h2 id="totalChallenges">0</h2>
+        <p>Total Challenges</p>
+      </div>
+
+      <div class="stat-box">
+        <button class="theme-btn" onclick="toggleTheme()">Toggle Dark / Light Theme</button>
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <input type="text" id="searchCategory" placeholder="Search by Category" onkeyup="loadChallenges()">
+
+      <select id="filterDifficulty" onchange="loadChallenges()">
+        <option value="">All Difficulties</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+      </select>
+
+      <select id="sortPoints" onchange="loadChallenges()">
+        <option value="default">Sort by Points</option>
+        <option value="low">Low to High</option>
+        <option value="high">High to Low</option>
+      </select>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Add / Edit Challenge</h2>
+
+        <input type="number" id="id" placeholder="Challenge ID">
+        <input type="text" id="title" placeholder="Challenge Title">
+        <textarea id="description" placeholder="Description"></textarea>
+        <input type="text" id="category" placeholder="Category">
+
+        <select id="difficulty">
+          <option value="">Select Difficulty</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+
+        <input type="number" id="points" placeholder="Points">
+        <input type="text" id="criteria" placeholder="Evaluation Criteria">
+
+        <button class="main-btn" onclick="addChallenge()">Add Challenge</button>
+      </div>
+
+      <div class="card">
+        <h2>Stored Challenges</h2>
+        <div id="challengeList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allChallenges = [];
+
+    function login() {
+      const user = document.getElementById('loginUser').value;
+      const pass = document.getElementById('loginPass').value;
+
+      if (user === 'admin' && pass === 'admin123') {
+        document.getElementById('loginScreen').style.display = 'none';
+      } else {
+        alert('Invalid login');
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+    }
+
+    async function loadChallenges() {
+      const response = await fetch('http://localhost:3000/challenges');
+      const data = await response.json();
+
+      allChallenges = data;
+
+      const categorySearch = document.getElementById('searchCategory').value.toLowerCase();
+      const difficultyFilter = document.getElementById('filterDifficulty').value;
+      const sortType = document.getElementById('sortPoints').value;
+
+      let filtered = allChallenges.filter(challenge => {
+        const categoryMatch = challenge.category.toLowerCase().includes(categorySearch);
+        const difficultyMatch = difficultyFilter === '' || challenge.difficulty === difficultyFilter;
+        return categoryMatch && difficultyMatch;
+      });
+
+      if (sortType === 'low') {
+        filtered.sort((a, b) => a.points - b.points);
+      } else if (sortType === 'high') {
+        filtered.sort((a, b) => b.points - a.points);
+      }
+
+      document.getElementById('totalChallenges').innerText = filtered.length;
+
+      const list = document.getElementById('challengeList');
+      list.innerHTML = '';
+
+      filtered.forEach(challenge => {
+        list.innerHTML += `
+          <div class="challenge">
+            <h3>${challenge.title}</h3>
+            <p><strong>Challenge ID:</strong> ${challenge.challenge_id}</p>
+            <p style="margin-top:8px;">${challenge.description}</p>
+
+            <div class="tag-row">
+              <div class="tag">${challenge.category}</div>
+              <div class="tag">${challenge.difficulty}</div>
+            </div>
+
+            <p><strong>Points:</strong> ${challenge.points}</p>
+            <p style="margin-top:8px;"><strong>Criteria:</strong> ${challenge.evaluation_criteria}</p>
+
+            <div class="btn-row">
+              <button class="edit-btn" onclick="editChallenge(${challenge.challenge_id})">Edit</button>
+              <button class="view-btn" onclick="viewDetails(${challenge.challenge_id})">View Details</button>
+              <button class="delete-btn" onclick="deleteChallenge(${challenge.challenge_id})">Delete</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function addChallenge() {
+      const challenge = {
+        challenge_id: document.getElementById('id').value,
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        category: document.getElementById('category').value,
+        difficulty: document.getElementById('difficulty').value,
+        points: document.getElementById('points').value,
+        evaluation_criteria: document.getElementById('criteria').value
+      };
+
+      await fetch('http://localhost:3000/challenges', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(challenge)
+      });
+
+      document.getElementById('id').value = '';
+      document.getElementById('title').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('category').value = '';
+      document.getElementById('difficulty').value = '';
+      document.getElementById('points').value = '';
+      document.getElementById('criteria').value = '';
+
+      loadChallenges();
+    }
+
+    async function deleteChallenge(id) {
+      await fetch(`http://localhost:3000/challenges/${id}`, {
+        method: 'DELETE'
+      });
+
+      loadChallenges();
+    }
+
+    function editChallenge(id) {
+      const challenge = allChallenges.find(c => c.challenge_id == id);
+
+      document.getElementById('id').value = challenge.challenge_id;
+      document.getElementById('title').value = challenge.title;
+      document.getElementById('description').value = challenge.description;
+      document.getElementById('category').value = challenge.category;
+      document.getElementById('difficulty').value = challenge.difficulty;
+      document.getElementById('points').value = challenge.points;
+      document.getElementById('criteria').value = challenge.evaluation_criteria;
+
+      deleteChallenge(id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function viewDetails(id) {
+      const challenge = allChallenges.find(c => c.challenge_id == id);
+
+      document.getElementById('popupTitle').innerText = challenge.title;
+      document.getElementById('popupContent').innerHTML = `
+        <p><strong>Description:</strong> ${challenge.description}</p><br>
+        <p><strong>Category:</strong> ${challenge.category}</p>
+        <p><strong>Difficulty:</strong> ${challenge.difficulty}</p>
+        <p><strong>Points:</strong> ${challenge.points}</p><br>
+        <p><strong>Evaluation Criteria:</strong> ${challenge.evaluation_criteria}</p>
+      `;
+
+      document.getElementById('detailsPopup').style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('detailsPopup').style.display = 'none';
+    }
+
+    loadChallenges();
+  </script>
+
+</body>
+</html>
